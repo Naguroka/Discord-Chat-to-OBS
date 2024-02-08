@@ -9,7 +9,7 @@ Discord Chat Display is a web application designed to embed a live Discord chat 
 - **Auto-Scrolling:** Keeps the chat view scrolled to the latest message, ensuring active conversations are always visible.
 - **Customizable Layout:** Easy to customize CSS for personalizing the chat display to match your streaming overlay.
 
-![test][https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png]
+![test](https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png)
 
 ## Setup Instructions
 
