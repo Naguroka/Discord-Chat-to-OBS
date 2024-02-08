@@ -20,7 +20,7 @@ Discord Chat Display is a web application designed to embed a live Discord chat 
 1. **Clone the Repository**
    ```sh
    git clone https://github.com/Naguroka/Discord-Chat-to-OBS.git
-   cd discord-chat-display
+   cd Discord-Chat-to-OBS
    ```
 
 2. **Install Dependencies**
@@ -61,4 +61,3 @@ I welcome contributions! Please feel free to fork the repository, make your chan
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
-```
