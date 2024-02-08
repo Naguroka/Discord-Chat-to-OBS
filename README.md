@@ -1,4 +1,3 @@
-```
 # Discord Chat Display
 
 ## Overview
@@ -20,7 +19,7 @@ Discord Chat Display is a web application designed to embed a live Discord chat 
 
 1. **Clone the Repository**
    ```sh
-   git clone https://github.com/Naguroka/discord-chat-to-obs.git
+   git clone https://github.com/Naguroka/Discord-Chat-to-OBS.git
    cd discord-chat-display
    ```
 
@@ -40,7 +39,7 @@ Discord Chat Display is a web application designed to embed a live Discord chat 
 
 ### Running the Application
 
-1. **Start the "start_everything.bat" file**
+1. **Run the "start_everything.bat" file**
 
 ## Usage
 
