@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Hide scrollbars on the whole page */
+    font-family: 'Roboto', sans-serif; /* Similar to Discord's font */
+    background-color: #36393f; /* Discord's dark theme background color */
+}
+
+#chat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: scroll; /* Enable vertical scrolling */
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: none; /* For Firefox */
+}
+
+#chat::-webkit-scrollbar {
+    display: none; /* Hide scrollbars for Chrome, Safari, and Opera */
+}
+
+.chat-message {
+    margin-bottom: 10px;
+}
+
+.message-content {
+    background-color: #40444b; /* Slightly lighter grey for the message bubble */
+    color: #dcddde; /* Text color similar to Discord's */
+    padding: 5px 10px;
+    border-radius: 15px;
+    word-wrap: break-word;
+}
+
+.username {
+    font-weight: 500; /* Medium font weight for username */
+    margin-right: 5px;
+}
+
+.message-text {
+    display: inline; /* Keep username and message on the same line */
+}
+
+.chat-image {
+    max-width: 100px; /* Adjust based on your preference */
+    max-height: 100px;
+    display: block; /* Make images block level for standalone display */
+    object-fit: contain;
+    margin-top: 5px; /* Space between text and image if both are present */
+}
