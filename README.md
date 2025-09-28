@@ -1,65 +1,77 @@
 # Discord Chat Display
 
 ## Overview
-Discord Chat Display is a web application designed to embed a live Discord chat stream into your Twitch or other streaming platforms. It captures messages from a specified Discord channel and displays them in real-time on a custom web page, styled to resemble Discord's theme. This project enables streamers to visually integrate their Discord interactions directly into their streams.
+Discord Chat Display lets you mirror a Discord channel inside browser sources such as OBS. A lightweight Discord bot listens for new messages, relays them over a tiny web API, and the bundled front-end renders them in a Discord-inspired theme.
 
-## Features
-- **Real-Time Chat Updates:** Automatically fetches and displays new messages from a designated Discord channel.
-- **Discord-Like Styling:** Utilizes a color scheme and font similar to Discord for a cohesive look and feel.
-- **Auto-Scrolling:** Keeps the chat view scrolled to the latest message, ensuring active conversations are always visible.
-- **Customizable Layout:** Easy to customize CSS for personalizing the chat display to match your streaming overlay.
+![Discord Chat Display](https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png)
 
-![test](https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png)
+## Requirements
+- Python 3.10 or newer (3.12 recommended)
+- A Discord bot token with the **MESSAGE CONTENT INTENT** enabled
+- Permissions to invite the bot to the guild/channel you want to mirror
 
-## Setup Instructions
+## Setup
 
-### Prerequisites
-- Python 3.6 or higher
-- A Discord Bot Token
-
-### Installation
-
-1. **Clone the Repository**
+1. **Clone the repository**
    ```sh
    git clone https://github.com/Naguroka/Discord-Chat-to-OBS.git
    cd Discord-Chat-to-OBS
    ```
 
-2. **Install Dependencies**
-   - The project uses standard libraries (`discord.py`, `aiohttp`).
-
-3. **Configure Your Bot**
-   - Create a Discord bot and obtain your token from the Discord Developer Portal.
-   - Enable `MESSAGE CONTENT INTENT` for your bot.
-
-4. **Set Up Environment Variables**
-   - It's recommended to store your Discord Bot Token and channel ID as environment variables.
+2. **Install dependencies** (virtual environments are encouraged)
    ```sh
-   DISCORD_BOT_TOKEN=your_bot_token
-   DISCORD_CHANNEL_ID=your_channel_id
+   python -m venv .venv
+   .venv\Scripts\activate  # Windows
+   # source .venv/bin/activate  # macOS / Linux
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
    ```
 
-### Running the Application
+3. **Create your configuration**
+   ```sh
+   copy .env.example .env  # Windows
+   # cp .env.example .env   # macOS / Linux
+   ```
+   Fill in the required secrets:
+   - `DISCORD_BOT_TOKEN` - your bot token from the Discord Developer Portal.
+   - `DISCORD_CHANNEL_ID` - the numeric ID of the channel to mirror (right-click the channel in Discord with developer mode enabled).
 
-1. **Run the "start_everything.bat" file**
+## Optional configuration
+You can tweak runtime behaviour without touching code by setting the following keys in `.env`:
+- `CHAT_API_HOST` (default `127.0.0.1`) - interface for the JSON endpoint.
+- `CHAT_API_PORT` (default `8080`) - port for the JSON endpoint that the web page polls.
+- `CHAT_HISTORY_SIZE` (default `200`) - number of recent messages kept in memory.
+- `LOG_LEVEL` (default `INFO`) - standard Python logging level (e.g. `DEBUG`).
 
-## Usage
+## Running
+### Quick start (Windows)
+Double-click `start_everything.bat`. It launches the static file server on `http://localhost:8000` and the Discord relay on `http://localhost:8080`.
 
-Once both the backend and frontend are running, navigate to `http://localhost:8000` in your web browser to view the chat display. The page will automatically update with new messages from your Discord channel.
+### Manual start (all platforms)
+Open two terminals:
+1. Serve the static assets so OBS/browser sources can load them:
+   ```sh
+   python -m http.server 8000
+   ```
+2. Start the Discord relay bot:
+   ```sh
+   python bot.py
+   ```
 
-## Customization
+Visit `http://localhost:8000` in a browser (or add it as an OBS browser source) to see the chat update in real time.
 
-- **Styling:** Modify `styles.css` to change the appearance of the chat display.
-- **Functionality:** Adjust `script.js` and `bot.py` for additional features or changes in message handling.
+## Customisation
+- **Styling:** Adjust colours and layout in `styles.css`.
+- **Front-end behaviour:** Extend `script.js` if you want richer message formatting.
+- **Message retention:** Change `CHAT_HISTORY_SIZE` in `.env` to tune how many messages are exposed to the front-end.
+
+## Troubleshooting
+- `RuntimeError: Environment variable 'DISCORD_BOT_TOKEN' is required.` - ensure `.env` exists and is filled in, or set the variables in your shell before launching.
+- `discord.errors.LoginFailure` - double-check that the bot token is correct and has not been regenerated.
+- No messages appearing - confirm the bot has access to the target channel and that `DISCORD_CHANNEL_ID` uses the correct snowflake.
 
 ## Contributing
-
-I welcome contributions! Please feel free to fork the repository, make your changes, and submit a pull request.
-
-## Notes
-
-- This was made to be used with OBS's browser module to show your discord chat on stream with a high level of customizability
+Contributions and feature suggestions are welcome! Please open an issue or submit a pull request if you have improvements.
 
 ## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License. See `LICENSE` for details.
