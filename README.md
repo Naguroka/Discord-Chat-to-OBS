@@ -29,19 +29,21 @@ Discord Chat Display lets you mirror a Discord channel inside browser sources su
 
 3. **Create your configuration**
    ```sh
-   copy .env.example .env  # Windows
-   # cp .env.example .env   # macOS / Linux
+   copy settings.ini.example settings.ini  # Windows
+   # cp settings.ini.example settings.ini   # macOS / Linux
    ```
-   Fill in the required secrets:
+   Fill in the required secrets inside `settings.ini`:
    - `DISCORD_BOT_TOKEN` - your bot token from the Discord Developer Portal.
    - `DISCORD_CHANNEL_ID` - the numeric ID of the channel to mirror (right-click the channel in Discord with developer mode enabled).
 
 ## Optional configuration
-You can tweak runtime behaviour without touching code by setting the following keys in `.env`:
+Tune runtime behaviour by editing the corresponding values in `settings.ini`:
 - `CHAT_API_HOST` (default `127.0.0.1`) - interface for the JSON endpoint.
 - `CHAT_API_PORT` (default `8080`) - port for the JSON endpoint that the web page polls.
 - `CHAT_HISTORY_SIZE` (default `200`) - number of recent messages kept in memory.
 - `LOG_LEVEL` (default `INFO`) - standard Python logging level (e.g. `DEBUG`).
+
+The bot also honours environment variables with the same names, which can override the values in `settings.ini` when needed for deployments.
 
 ## Running
 ### Quick start (Windows)
@@ -63,10 +65,10 @@ Visit `http://localhost:8000` in a browser (or add it as an OBS browser source) 
 ## Customisation
 - **Styling:** Adjust colours and layout in `styles.css`.
 - **Front-end behaviour:** Extend `script.js` if you want richer message formatting.
-- **Message retention:** Change `CHAT_HISTORY_SIZE` in `.env` to tune how many messages are exposed to the front-end.
+- **Message retention:** Change `CHAT_HISTORY_SIZE` in `settings.ini` to tune how many messages are exposed to the front-end.
 
 ## Troubleshooting
-- `RuntimeError: Environment variable 'DISCORD_BOT_TOKEN' is required.` - ensure `.env` exists and is filled in, or set the variables in your shell before launching.
+- `RuntimeError: Configuration value 'DISCORD_BOT_TOKEN' is required.` - ensure `settings.ini` exists and is filled in, or set the variables in your shell before launching.
 - `discord.errors.LoginFailure` - double-check that the bot token is correct and has not been regenerated.
 - No messages appearing - confirm the bot has access to the target channel and that `DISCORD_CHANNEL_ID` uses the correct snowflake.
 

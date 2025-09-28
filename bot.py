@@ -7,13 +7,15 @@ import logging
 import os
 from collections import deque
 from dataclasses import dataclass
-from pathlib import Path as SysPath
-from typing import Deque, Dict
+from pathlib import Path
+from typing import Deque, Dict, Mapping
 
 import discord
 from aiohttp import web
 
 log = logging.getLogger("discord_chat_to_obs")
+
+SETTINGS_PATH = Path("settings.ini")
 
 
 def configure_logging() -> None:
@@ -23,43 +25,49 @@ def configure_logging() -> None:
     )
 
 
-def load_env_file(path: SysPath = SysPath(".env")) -> None:
-    """Populate environment variables from a simple .env file if present."""
+def load_settings_file(path: Path) -> Dict[str, str]:
     if not path.exists():
-        return
+        raise RuntimeError(
+            "settings.ini is missing. Copy settings.ini.example, fill it in, and rerun the bot."
+        )
 
+    result: Dict[str, str] = {}
     for raw_line in path.read_text(encoding="utf-8").splitlines():
         line = raw_line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
+        result[key.strip()] = value.strip().strip('"').strip("'")
+    return result
 
 
-def require_env(name: str) -> str:
-    value = os.getenv(name)
+def get_setting(store: Mapping[str, str], key: str, *, default: str | None = None) -> str | None:
+    value = store.get(key)
+    if value:
+        return value
+    env_value = os.getenv(key)
+    if env_value:
+        return env_value
+    return default
+
+
+def require_setting(store: Mapping[str, str], key: str) -> str:
+    value = get_setting(store, key)
     if not value:
         raise RuntimeError(
-            f"Environment variable '{name}' is required. See README for setup details."
+            f"Configuration value '{key}' is required. See README for setup details."
         )
     return value
 
 
-def parse_int_env(name: str, default: int, *, minimum: int | None = None) -> int:
-    raw_value = os.getenv(name)
-    if raw_value is None:
-        return default
-
+def parse_int(value: str, key: str, *, minimum: int | None = None) -> int:
     try:
-        parsed = int(raw_value)
+        parsed = int(value)
     except ValueError as err:
-        raise RuntimeError(f"Environment variable '{name}' must be an integer.") from err
+        raise RuntimeError(f"Configuration value '{key}' must be an integer.") from err
 
     if minimum is not None and parsed < minimum:
-        raise RuntimeError(f"Environment variable '{name}' must be >= {minimum}.")
-
+        raise RuntimeError(f"Configuration value '{key}' must be >= {minimum}.")
     return parsed
 
 
@@ -73,18 +81,18 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    load_env_file()
+    store = load_settings_file(SETTINGS_PATH)
 
-    token = require_env("DISCORD_BOT_TOKEN")
-    channel_id_raw = require_env("DISCORD_CHANNEL_ID")
-    try:
-        channel_id = int(channel_id_raw)
-    except ValueError as err:
-        raise RuntimeError("DISCORD_CHANNEL_ID must be an integer.") from err
+    token = require_setting(store, "DISCORD_BOT_TOKEN")
+    channel_id_raw = require_setting(store, "DISCORD_CHANNEL_ID")
+    channel_id = parse_int(channel_id_raw, "DISCORD_CHANNEL_ID", minimum=1)
 
-    host = os.getenv("CHAT_API_HOST", "127.0.0.1")
-    port = parse_int_env("CHAT_API_PORT", 8080, minimum=1)
-    history_size = parse_int_env("CHAT_HISTORY_SIZE", 200, minimum=1)
+    host = get_setting(store, "CHAT_API_HOST", default="127.0.0.1") or "127.0.0.1"
+    port_raw = get_setting(store, "CHAT_API_PORT", default="8080") or "8080"
+    port = parse_int(port_raw, "CHAT_API_PORT", minimum=1)
+
+    history_raw = get_setting(store, "CHAT_HISTORY_SIZE", default="200") or "200"
+    history_size = parse_int(history_raw, "CHAT_HISTORY_SIZE", minimum=1)
 
     return Settings(token=token, channel_id=channel_id, host=host, port=port, history_size=history_size)
 

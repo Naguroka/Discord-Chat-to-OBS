@@ -1,4 +1,4 @@
-# Copy this file to .env and replace the placeholders before running the bot.
+# Copy this file to settings.ini and replace the placeholders before running the bot.
 DISCORD_BOT_TOKEN=your-bot-token
 DISCORD_CHANNEL_ID=123456789012345678
 # CHAT_API_HOST=127.0.0.1
