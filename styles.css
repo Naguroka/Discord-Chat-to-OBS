@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 body, html {
     margin: 0;
@@ -32,12 +32,17 @@ body, html {
 }
 
 .message-content {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     background-color: #40444b; /* Slightly lighter grey for the message bubble */
     color: #dcddde; /* Text color similar to Discord's */
     padding: 5px 10px;
     border-radius: 15px;
     word-wrap: break-word;
 }
+
 
 .username {
     font-weight: 500; /* Medium font weight for username */
@@ -48,10 +53,23 @@ body, html {
     display: inline; /* Keep username and message on the same line */
 }
 
-.chat-image {
-    max-width: 100px; /* Adjust based on your preference */
-    max-height: 100px;
-    display: block; /* Make images block level for standalone display */
-    object-fit: contain;
-    margin-top: 5px; /* Space between text and image if both are present */
+.media-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
+
+.chat-image,
+.chat-video {
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.chat-video {
+    background-color: #000;
+}
+
+

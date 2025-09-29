@@ -1,10 +1,11 @@
-"""Discord channel bridge that relays messages to a local web endpoint for OBS overlays."""
+﻿"""Discord channel bridge that relays messages to a local web endpoint for OBS overlays."""
 
 from __future__ import annotations
 
 import asyncio
 import logging
 import os
+import re
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
@@ -16,6 +17,7 @@ from aiohttp import web
 log = logging.getLogger("discord_chat_to_obs")
 
 SETTINGS_PATH = Path("settings.ini")
+BASE_DIR = Path(__file__).parent
 
 
 def configure_logging() -> None:
@@ -126,9 +128,75 @@ class ChatRelayClient(discord.Client):
             return
 
         content = message.clean_content
-        if message.attachments:
-            attachment_urls = "\n".join(attachment.url for attachment in message.attachments)
-            content = f"{content}\n{attachment_urls}" if content else attachment_urls
+
+        media_items: list[dict[str, str]] = []
+        seen_media: set[str] = set()
+        urls_to_strip: set[str] = set()
+
+        def normalize(url: str) -> str:
+            return url.split("?", 1)[0].lower()
+
+        def remember_url(url: str | None) -> None:
+            if not url:
+                return
+            urls_to_strip.add(url)
+            urls_to_strip.add(normalize(url))
+
+        def add_media(url: str | None, media_type: str, *, source_url: str | None = None) -> bool:
+            if not url:
+                return False
+            normalized = normalize(url)
+            if normalized in seen_media:
+                return False
+            seen_media.add(normalized)
+            media_items.append({"type": media_type, "url": url})
+            remember_url(url)
+            remember_url(source_url)
+            return True
+
+        attachment_fallback: list[str] = []
+        for attachment in message.attachments:
+            url = attachment.url
+            content_type = (attachment.content_type or "").lower()
+            lower_url = url.lower()
+            handled = False
+            if content_type.startswith("image/") or lower_url.endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")):
+                handled = add_media(url, "image", source_url=url)
+            elif content_type.startswith("video/") or lower_url.endswith((".mp4", ".mov", ".webm")):
+                handled = add_media(url, "video", source_url=url)
+            if not handled:
+                attachment_fallback.append(url)
+
+        for embed in message.embeds:
+            media_added = False
+            embed_video = getattr(embed, "video", None)
+            source_url = getattr(embed, "url", None)
+            if embed_video and getattr(embed_video, "url", None):
+                media_added = add_media(embed_video.url, "video", source_url=source_url) or media_added
+            if not media_added:
+                embed_image = getattr(embed, "image", None)
+                if embed_image and getattr(embed_image, "url", None):
+                    media_added = add_media(embed_image.url, "image", source_url=source_url) or media_added
+                embed_thumbnail = getattr(embed, "thumbnail", None)
+                if embed_thumbnail and getattr(embed_thumbnail, "url", None):
+                    media_added = add_media(embed_thumbnail.url, "image", source_url=source_url) or media_added
+
+        if attachment_fallback and not media_items:
+            attachment_block = "\n".join(attachment_fallback)
+            content = f"{content}\n{attachment_block}" if content else attachment_block
+
+        if media_items:
+            for match in re.findall(r"https?://\S+", content or ""):
+                remember_url(match)
+
+        if urls_to_strip and content:
+            for url in sorted(urls_to_strip, key=len, reverse=True):
+                if not url:
+                    continue
+                content = content.replace(url, "")
+            content = re.sub(r"\s+", " ", content).strip()
+            if not content:
+                content = ""
 
         avatar_url = str(message.author.display_avatar.url)
         display_name = message.author.display_name
@@ -138,12 +206,12 @@ class ChatRelayClient(discord.Client):
             colour_value = top_role.colour.value
             if colour_value:
                 role_color = f"#{colour_value:06x}"
-
         payload = {
             "content": content,
             "author": display_name,
             "avatar_url": avatar_url,
             "role_color": role_color,
+            "media": media_items,
         }
         self._history.append(payload)
         log.debug("Stored message from %s", display_name)
@@ -159,12 +227,35 @@ def cors_headers() -> Dict[str, str]:
 
 def build_web_app(history: Deque[MessagePayload]) -> web.Application:
     async def handle_chat(request: web.Request) -> web.Response:
+        if wants_html(request):
+            return await handle_index(request)
         return web.json_response(list(history), headers=cors_headers())
 
     async def handle_options(request: web.Request) -> web.Response:
         return web.Response(headers=cors_headers())
 
+    async def handle_index(request: web.Request) -> web.StreamResponse:
+        return web.FileResponse(BASE_DIR / "index.html")
+
+    async def handle_script(request: web.Request) -> web.StreamResponse:
+        return web.FileResponse(BASE_DIR / "script.js")
+
+    async def handle_styles(request: web.Request) -> web.StreamResponse:
+        return web.FileResponse(BASE_DIR / "styles.css")
+
+    def wants_html(request: web.Request) -> bool:
+        accept = (request.headers.get("Accept") or "*/*").lower()
+        if request.headers.get("Sec-Fetch-Dest") == "document":
+            return True
+        json_markers = ("application/json", "application/ld+json", "application/vnd.api+json", "text/json")
+        if any(marker in accept for marker in json_markers):
+            return False
+        return True
+
     app = web.Application()
+    app.router.add_get("/", handle_index)
+    app.router.add_get("/script.js", handle_script)
+    app.router.add_get("/styles.css", handle_styles)
     app.router.add_get("/chat", handle_chat)
     app.router.add_options("/chat", handle_options)
     return app
@@ -226,3 +317,9 @@ if __name__ == "__main__":
         pass
     except Exception:
         log.exception("Fatal error")
+
+
+
+
+
+
