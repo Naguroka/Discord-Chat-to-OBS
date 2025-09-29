@@ -8,7 +8,7 @@ This project shows the messages from one Discord channel in a web page that look
 ## Before You Start
 You will need:
 - A Windows PC with [Python 3.10 or newer](https://www.python.org/downloads/) installed. When you install Python, **check the box that says “Add Python to PATH.”**
-- A Discord bot token and permission to add the bot to the server/channel you want to mirror. Turn on the **MESSAGE CONTENT INTENT** for that bot.
+- A Discord bot token and permission to add the bot to the server/channel you want to mirror. Turn on the **MESSAGE CONTENT INTENT** for that bot. After you enable the intents, skip the **Install** tab, open **OAuth2**, check **bot** and **applications.commands**, then scroll to the bottom and copy the generated URL - use that link to invite the bot to your server.
 
 ## One-Time Setup (do these steps in order)
 1. **Download the project**
