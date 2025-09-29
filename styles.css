@@ -52,6 +52,15 @@ body, html {
 .message-text {
     display: inline; /* Keep username and message on the same line */
 }
+.custom-emoji {
+    display: inline-block;
+    width: 1.4em;
+    height: 1.4em;
+    margin: 0 0.1em;
+    vertical-align: text-bottom;
+    object-fit: contain;
+}
+
 
 .media-gallery {
     display: flex;

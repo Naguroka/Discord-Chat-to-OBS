@@ -53,6 +53,7 @@ To stop everything, close the two command windows that opened.
 ## Changing the Look
 - `styles.css` controls colours and spacing.
 - `script.js` controls how messages appear (for example, adding image previews).
+- Put custom emoji files in the `customEmojis` folder, naming each file after the emoji ID (for example, `235789323642.png`). When a message contains `<:emojiName:235789323642>`, the overlay swaps in that image automatically. Animated emojis try `.gif` first, then fall back to `.png` or `.webp`.
 - In `settings.ini` you can tweak:
   - `CHAT_API_HOST` and `CHAT_API_PORT` if you need different network addresses.
   - `CHAT_HISTORY_SIZE` if you want to show more or fewer messages.

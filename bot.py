@@ -18,6 +18,7 @@ log = logging.getLogger("discord_chat_to_obs")
 
 SETTINGS_PATH = Path("settings.ini")
 BASE_DIR = Path(__file__).parent
+CUSTOM_EMOJI_DIR = BASE_DIR / "customEmojis"
 
 
 def configure_logging() -> None:
@@ -253,6 +254,9 @@ def build_web_app(history: Deque[MessagePayload]) -> web.Application:
         return True
 
     app = web.Application()
+    emoji_dir = CUSTOM_EMOJI_DIR
+    emoji_dir.mkdir(parents=True, exist_ok=True)
+    app.router.add_static('/customEmojis', emoji_dir)
     app.router.add_get("/", handle_index)
     app.router.add_get("/script.js", handle_script)
     app.router.add_get("/styles.css", handle_styles)

@@ -1,6 +1,65 @@
 ﻿const FALLBACK_API_ORIGIN = 'http://localhost:8080';
 const currentOrigin = `${window.location.protocol}//${window.location.host}`;
 const chatApiOrigin = (window.CHAT_API_ORIGIN || (window.location.port === '8000' ? FALLBACK_API_ORIGIN : currentOrigin)).replace(/\/$/, '');
+const CUSTOM_EMOJI_PATTERN = /<a?:([a-zA-Z0-9_]+):(\d+)>/g;
+const CUSTOM_EMOJI_BASE_PATH = 'customEmojis';
+
+function createCustomEmojiElement(name, id, animated) {
+    const img = document.createElement('img');
+    img.classList.add('custom-emoji');
+    img.alt = `:${name}:`;
+    img.decoding = "async";
+    img.loading = "lazy";
+    const extensions = animated ? ['gif', 'png', 'webp'] : ['png', 'webp', 'gif'];
+    let index = 0;
+
+    const applySource = () => {
+        const ext = extensions[index];
+        img.src = `${CUSTOM_EMOJI_BASE_PATH}/${id}.${ext}`;
+    };
+
+    img.addEventListener('error', () => {
+        index += 1;
+        if (index < extensions.length) {
+            const ext = extensions[index];
+            img.src = `${CUSTOM_EMOJI_BASE_PATH}/${id}.${ext}?retry=${Date.now()}`;
+            return;
+        }
+        img.replaceWith(document.createTextNode(`:${name}:`));
+    });
+
+    applySource();
+    return img;
+}
+
+function renderTextWithCustomEmojis(text) {
+    const fragment = document.createDocumentFragment();
+    if (!text) {
+        return fragment;
+    }
+
+    CUSTOM_EMOJI_PATTERN.lastIndex = 0;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = CUSTOM_EMOJI_PATTERN.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+        }
+        const name = match[1];
+        const id = match[2];
+        const animated = match[0].startsWith('<a:');
+        fragment.appendChild(createCustomEmojiElement(name, id, animated));
+        lastIndex = CUSTOM_EMOJI_PATTERN.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+        fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+    }
+
+    return fragment;
+}
+
 
 let lastRenderedPayload = '';
 let lastRenderedSnapshot = [];
@@ -53,7 +112,8 @@ function renderMessage(message) {
     if (textContent.length > 0) {
         const contentText = document.createElement('span');
         contentText.classList.add('message-text');
-        contentText.textContent = ` ${textContent}`;
+        contentText.appendChild(document.createTextNode(' '));
+        contentText.appendChild(renderTextWithCustomEmojis(textContent));
         contentWrapper.appendChild(contentText);
     }
 
