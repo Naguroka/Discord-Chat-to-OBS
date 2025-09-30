@@ -2,39 +2,70 @@
 
 ![Discord Chat Display](https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png)
 
-## Highlights
-- Mirrors a Discord channel in real time for OBS or any browser source.
-- Plays images, videos, animated emojis, and Lottie stickers inline.
-- Ships with an embeddable widget (`embed.js`) so any website can host the chat without extra styling.
-- Lets you target different Discord channels for OBS and the web embed (`DISCORD_CHANNEL_ID_OBS` vs `DISCORD_CHANNEL_ID_EMBED`).
-- Smooth scrolling and message entrance animations keep the feed readable.
+This project mirrors one Discord channel to a browser page so stream viewers or website visitors can watch the conversation live. Animated emojis, images, videos, and Lottie stickers play inline, and the layout copies the look and feel of Discord.
 
-## Requirements
-- Windows PC (tested) with [Python 3.10+](https://www.python.org/downloads/). During install, **check "Add Python to PATH."**
-- A Discord bot with **MESSAGE CONTENT INTENT** enabled and permission to read the target channel(s).
+---
 
-## Quick Start
-1. **Download the project.** Click the green **Code** button on GitHub and choose **Download ZIP**. Extract it somewhere easy, e.g. Desktop.
-2. **Install dependencies.** In the extracted folder, open PowerShell/Command Prompt and run:
+## 1. Install The Prerequisites (Windows)
+1. Download [Python 3.10 or newer](https://www.python.org/downloads/).
+2. Run the installer. When you see **“Add Python to PATH”**, tick that box before you click **Install**.
+3. Finish the installer and close it.
+
+## 2. Create Your Discord Bot And Invite It
+1. Open <https://discord.com/developers/applications> and log in.
+2. Click **New Application**, give it a name (for example, “Stream Chat Relay”), and click **Create**.
+3. In the left sidebar select **Bot** → click **Add Bot** → confirm with **Yes, do it!**
+4. Still on the Bot page:
+   - Turn on **PRESENCE INTENT** (optional) and **MESSAGE CONTENT INTENT** (required).
+   - Click **Reset Token**, confirm, and copy the token to a safe place – you will put it in `settings.ini` later.
+5. In the sidebar pick **OAuth2 → URL Generator**.
+   - Under **Scopes**, tick **`applications.commands`** and **`bot`** (do **not** use the **Install** tab).
+   - Under **Bot Permissions**, tick **View Channels**, **Read Message History**, and **Send Messages**.
+   - Scroll to the bottom, copy the generated URL, paste it into your browser, choose the server you stream from, and authorise the bot.
+
+## 3. Download This Project
+1. Go to the GitHub repository page.
+2. Click the green **Code** button → **Download ZIP**.
+3. Right‑click the downloaded ZIP → **Extract All…** → pick an easy location such as your Desktop. You should now have a folder named `Discord-Chat-to-OBS-main` (or similar).
+
+## 4. Install The Python Packages
+1. Open the extracted folder in File Explorer.
+2. Click in the address bar, type `cmd`, and press Enter – a Command Prompt will open in that folder.
+3. Run:
    ```cmd
    pip install --upgrade pip
    pip install -r requirements.txt
    ```
-3. **Configure `settings.ini`.** Copy `settings.ini.example` to `settings.ini`, open it in a text editor, and fill in:
-   - `DISCORD_BOT_TOKEN` - your bot token.
-   - `DISCORD_CHANNEL_ID_OBS` - the channel you want to show inside OBS.
-   - `DISCORD_CHANNEL_ID_EMBED` - the channel to expose via the embeddable widget. Use the OBS channel ID again if you only need one feed.
-   Optional keys:
-   - `CHAT_API_HOST` / `CHAT_API_PORT` - override the HTTP server bind address (default `127.0.0.1:8080`).
-   - `CHAT_HISTORY_SIZE` - how many recent messages to retain (default `200`).
-   Legacy `DISCORD_CHANNEL_ID` is still read as a fallback, but the two explicit keys above are preferred.
-4. **Run the bot and web server.** Either double-click `start_everything.bat` or run `python bot.py`. The log will confirm the OBS + embed channel IDs and the REST endpoints.
-5. **Add to OBS.** Create a Browser Source in OBS pointing at `http://127.0.0.1:8080/` and set the width/height you prefer. The page auto-scrolls and animates new messages.
+   Let the commands finish (they may take a minute on the first run).
 
-## Embedding on Another Site
-The embed widget consumes the `/embed.js` helper and talks to the `/embed-chat` endpoint automatically.
+## 5. Configure `settings.ini`
+1. In File Explorer copy `settings.ini.example`, then rename the copy to `settings.ini`.
+2. Open `settings.ini` in Notepad and fill in:
+   - `DISCORD_BOT_TOKEN` – paste the token you copied from the Developer Portal.
+   - `DISCORD_CHANNEL_ID_OBS` – the channel you want to show inside OBS. In Discord, right‑click the channel name (Developer Mode enabled) → **Copy ID**.
+   - `DISCORD_CHANNEL_ID_EMBED` – the channel you want to expose on websites. Use the OBS ID again if you only need one feed.
+   Optional ideas:
+   - `CHAT_API_HOST` / `CHAT_API_PORT` to bind the web server somewhere other than `127.0.0.1:8080`.
+   - `CHAT_HISTORY_SIZE` to keep more or fewer messages (default 200).
+   - Legacy `DISCORD_CHANNEL_ID` is still accepted, but the two explicit keys above are preferred.
+3. Save the file and close Notepad.
 
-### Copy-paste script helper
+## 6. Start The Relay
+1. From a Command Prompt inside the project folder run `python bot.py` (or double‑click `start_everything.bat`).
+2. The console will print the channels it is watching and confirm that the web server is listening on `http://127.0.0.1:8080`.
+3. Leave this window open while you stream – it runs the Discord client and the local API.
+
+## 7. Add The Chat To OBS
+1. In OBS add a **Browser Source**.
+2. Set the URL to `http://127.0.0.1:8080/` (or whatever host/port you configured).
+3. Choose a width/height (for example 700 × 900). The overlay will auto‑scroll and animate new messages.
+
+---
+
+## Embedding The Chat On A Website
+Everything a site owner needs lives in this repository – no extra CSS or scripts required.
+
+### Quick Script Helper
 ```html
 <div id="discord-chat"></div>
 <script
@@ -46,17 +77,17 @@ The embed widget consumes the `/embed.js` helper and talks to the `/embed-chat` 
   data-chat-target="embed">
 </script>
 ```
-Supported `data-` attributes:
+Supported attributes include:
 - `data-width`, `data-height`, `data-min-height`, `data-max-height`
 - `data-background` (`bg`), `data-message-background`, `data-text-color`, `data-username-color`
 - `data-font` (`system`, `serif`, `mono`, or any CSS font stack)
 - `data-transparent` (`true`/`false`)
-- `data-hide-usernames` (`true` hides the `Name:` prefix)
-- `data-auto-resize` (`false` by default; set `true` to allow the iframe to grow with content)
+- `data-hide-usernames` (`true` hides the “Name:” prefix)
+- `data-auto-resize` (`false` by default; set `true` to let the iframe grow with content)
 - `data-chat-target` (`embed` or `obs`; defaults to `embed`)
-- `data-api-origin` if your JSON API lives on another host
+- `data-api-origin` if the JSON API lives elsewhere
 
-### Manual mount with JavaScript
+### Manual Mount With JavaScript
 ```html
 <script src="https://your-host.example.com:8080/embed.js"></script>
 <script>
@@ -85,18 +116,22 @@ Supported `data-` attributes:
 ```
 Query parameters mirror the helper options (`bg`, `message_bg`, `text_color`, `username_color`, `font`, `hide_usernames`, `auto_resize`, `chat_target`).
 
-> **Tip:** The iframe posts `postMessage` events like `{ source: 'discord-chat-to-obs', type: 'size', height }`. Listen for those if you turn on auto-resize.
+> **Tip:** The iframe posts `postMessage` events like `{ source: 'discord-chat-to-obs', type: 'size', height }`. Listen for those if you enable auto‑resize.
 
-## Demo Page
-A ready-made playground lives in `demo-embed/index.html`. Start the bot (`python bot.py`), then open that file in your browser to try theme switches, username toggles, and alternate origins.
+---
+
+## Demo Playground
+The `demo-embed/index.html` page lets you try theme buttons, username toggles, and custom origins locally.
 
 ![Embed Demo](embed%20demo.png)
 
+---
+
 ## Troubleshooting
-- **"DISCORD_BOT_TOKEN is required."** Double-check `settings.ini` and ensure the file is in the project root.
+- **“DISCORD_BOT_TOKEN is required.”** Make sure `settings.ini` exists beside `bot.py` and the token field is filled in.
 - **Bot fails to log in.** Regenerate the token in the Developer Portal and update `settings.ini`.
-- **Feed is empty.** Confirm the bot has access to the channel(s) and the IDs in `settings.ini` are correct.
-- **Pip errors.** Make sure Python is installed, added to PATH, and retry the `pip install` commands.
+- **No messages appear.** Confirm the bot joined the server, can read the selected channels, and the channel IDs in `settings.ini` are correct.
+- **pip errors.** Check that Python is installed and on PATH, then re-run the commands in Step 4.
 
 ## License
 MIT License. See `LICENSE` for details.
