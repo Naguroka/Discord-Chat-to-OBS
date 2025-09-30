@@ -2,7 +2,14 @@
 
 ![Discord Chat Display](https://raw.githubusercontent.com/Naguroka/Discord-Chat-to-OBS/main/2024-02-08%2000_11_02-Discord%20Chat%20Display.png)
 
-This project mirrors one Discord channel to a browser page so stream viewers or website visitors can watch the conversation live. Animated emojis, images, videos, and Discord GIF/PNG stickers play inline, and the layout copies the look and feel of Discord.
+## Support Me!
+
+If you find this project helpful, please consider supporting me on Ko-fi:
+
+[![Ko-fi](https://cdn.ko-fi.com/cdn/kofi2.png)](https://ko-fi.com/naguroka)  
+[ko-fi.com/naguroka](https://ko-fi.com/naguroka)
+
+This project mirrors one Discord channel to a browser page so stream viewers or website visitors can watch the conversation live. Animated emojis, images, videos, and Discord GIF/PNG stickers play inline, and message embeds show rich previews. It works as both an OBS overlay and a website widget.
 
 ---
 
