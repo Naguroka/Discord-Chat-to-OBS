@@ -1,3 +1,4 @@
+// Interactive playground for testing DiscordChatEmbed options.
 
 (function () {
     const targetSelector = '#chat-target';
@@ -9,7 +10,8 @@
     let currentTheme = 'default';
     let mountedIframe = null;
 
-    const THEMES = {
+    // Theme presets to showcase quick styling tweaks.
+const THEMES = {
 
         default: {
             background: '#1e2230',
@@ -35,9 +37,11 @@
     };
 
     toggleUsersBtn.textContent = hideUsernames ? 'Show usernames' : 'Hide usernames';
+    // Keep the UI toggles in sync when we re-render the iframe.
     toggleUsersBtn.classList.toggle('active', hideUsernames);
 
     function mountChat() {
+        // Refresh the iframe with the latest controls from the demo UI.
         const origin = apiOriginInput.value.trim();
         if (!origin) {
             alert('Please enter the bot origin (e.g. http://127.0.0.1:8080).');
@@ -51,6 +55,7 @@
         }
 
         if (mountedIframe && mountedIframe.parentNode) {
+            // Tear down the previous iframe so we do not leak listeners.
             mountedIframe.remove();
             mountedIframe = null;
         }
@@ -60,6 +65,7 @@
         const theme = THEMES[currentTheme] || THEMES.default;
 
         mountedIframe = DiscordChatEmbed.mount(target, {
+            // Feed the helper the same options the README demonstrates.
             origin,
             background: theme.background,
             messageBackground: theme.messageBackground,
@@ -77,6 +83,7 @@
     }
 
     themeButtons.forEach(button => {
+        // Toggle the active theme button and rebuild the iframe.
         button.addEventListener('click', () => {
             themeButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
@@ -86,6 +93,7 @@
     });
 
     toggleUsersBtn.addEventListener('click', () => {
+        // Flip between showing and hiding usernames without reloading.
         hideUsernames = !hideUsernames;
         toggleUsersBtn.classList.toggle('active', hideUsernames);
         toggleUsersBtn.textContent = hideUsernames ? 'Show usernames' : 'Hide usernames';
@@ -93,6 +101,8 @@
     });
 
     apiOriginInput.addEventListener('change', mountChat);
+    // Remount when the origin changes so we always hit the new server.
 
     window.addEventListener('DOMContentLoaded', mountChat);
+    // Kick things off once the controls are ready.
 })();

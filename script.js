@@ -1,8 +1,10 @@
+// Front-end renderer for OBS and embed chat feeds.
 ﻿const urlParams = new URLSearchParams(window.location.search);
 const embedMode = urlParams.get('embed') === '1' || window !== window.parent;
 const forcedApiOrigin = urlParams.get('api_origin') || urlParams.get('chat_origin') || urlParams.get('origin');
 
 const FALLBACK_API_ORIGIN = 'http://localhost:8080';
+// Decide which HTTP origin and feed we should poll for this page load.
 const currentOrigin = `${window.location.protocol}//${window.location.host}`;
 const defaultOrigin = window.location.port === '8000' ? FALLBACK_API_ORIGIN : currentOrigin;
 const selectedApiOrigin = (forcedApiOrigin || window.CHAT_API_ORIGIN || defaultOrigin || '').replace(/\/$/, '');
@@ -15,6 +17,7 @@ const feedTarget = forcedFeedTargetRaw === 'embed'
         : (embedMode ? 'embed' : 'obs');
 const chatEndpointPath = feedTarget === 'embed' ? '/embed-chat' : '/chat';
 const chatEndpoint = `${chatApiOrigin}${chatEndpointPath}`;
+// The API mirrors OBS history by default; embeds can opt into their dedicated feed.
 const CUSTOM_EMOJI_PATTERN = /<a?:([a-zA-Z0-9_]+)(?::(\d+))?>/g;
 const CUSTOM_EMOJI_CDN_BASE = 'https://cdn.discordapp.com/emojis';
 
@@ -23,6 +26,7 @@ let lottieLoaderPromise = null;
 const lottieDataCache = new Map();
 const lottieDataPromises = new Map();
 
+// Helpers for parsing boolean-ish query parameters.
 function paramIsTrue(value) {
     if (value == null) {
         return false;
@@ -39,6 +43,7 @@ function paramIsFalse(value) {
     return normalized === '0' || normalized === 'false' || normalized === 'no';
 }
 
+// Convert height options into usable numbers while ignoring junk input.
 function parsePositiveNumber(value, fallback) {
     if (value == null) {
         return fallback;
@@ -74,6 +79,7 @@ const embedHeightParam = urlParams.get('frame_height') || urlParams.get('embed_h
 const embedMaxHeightParam = urlParams.get('max_height') || urlParams.get('maxHeight');
 
 if (embedMode) {
+    // Honor optional height caps so the host page can control the iframe footprint.
     const frameHeightValue = parsePositiveNumber(embedHeightParam, 480);
     const maxHeightValue = parsePositiveNumber(embedMaxHeightParam, frameHeightValue) || frameHeightValue;
     embedOptions.frameHeight = frameHeightValue;
@@ -182,6 +188,7 @@ function applyVisualOptions() {
 applyVisualOptions();
 
 function scrollChatToBottom() {
+    // Smooth-scroll the feed so new messages settle into view.
     const chatBox = document.getElementById('chat');
     if (!chatBox) {
         return;
@@ -200,6 +207,7 @@ function scrollChatToBottom() {
 let lastReportedHeight = 0;
 
 function reportEmbedSize(chatElement) {
+    // Notify the parent when auto-resize is enabled for iframe hosts.
     if (!embedOptions.embedMode || !embedOptions.autoResize || window === window.parent) {
         return;
     }
@@ -226,6 +234,7 @@ function reportEmbedSize(chatElement) {
     }
 }
 
+// Lazy-load lottie-web so animations only cost bandwidth when used.
 function loadLottieLibrary() {
     if (window.lottie) {
         return Promise.resolve(window.lottie);
@@ -253,6 +262,7 @@ function loadLottieLibrary() {
     return lottieLoaderPromise;
 }
 
+// Gather fallback still images for stickers and attachments.
 function collectFallbackSources(media) {
     const sources = [];
     if (media && typeof media === 'object') {
@@ -270,6 +280,7 @@ function collectFallbackSources(media) {
     return [...new Set(sources)];
 }
 
+// Collate Lottie JSON endpoints in priority order.
 function collectLottieSources(media) {
     const sources = [];
     if (media && typeof media === 'object') {
@@ -290,6 +301,7 @@ function collectLottieSources(media) {
     return [...new Set(sources)];
 }
 
+// Cache Lottie payloads so repeated stickers do not refetch JSON.
 function fetchLottieData(url) {
     if (!url || typeof url !== 'string') {
         return Promise.reject(new Error('Invalid Lottie URL.'));
@@ -326,6 +338,7 @@ function fetchLottieData(url) {
 }
 
 function fetchLottieAnimationData(urls) {
+    // Try the provided URLs until one returns usable animation data.
     const uniqueUrls = Array.isArray(urls) ? urls.filter(url => typeof url === 'string' && url) : [];
     if (uniqueUrls.length === 0) {
         return Promise.reject(new Error('No Lottie sources available.'));
@@ -368,6 +381,7 @@ function createFallbackImage(media) {
 
     img.addEventListener('load', scrollChatToBottom);
     img.addEventListener('error', () => {
+        // Roll through fallback stills if the current one fails.
         index += 1;
         applySource();
     });
@@ -377,6 +391,7 @@ function createFallbackImage(media) {
 }
 
 function createLottieElement(media) {
+    // Render animated stickers and fall back gracefully when CDN calls fail.
     if (!media || typeof media !== 'object') {
         return createFallbackImage(media);
     }
@@ -541,6 +556,7 @@ function cloneData(data) {
 }
 
 function createMediaElement(media) {
+    // Determine whether to paint a video, image, or Lottie container.
     if (!media) {
         return null;
     }
@@ -596,6 +612,7 @@ function createMediaElement(media) {
 }
 
 function renderMessage(message) {
+    // Build the DOM fragment for a single Discord message payload.
     const messageElement = document.createElement('div');
     messageElement.classList.add('chat-message');
 
@@ -657,6 +674,7 @@ function renderMessage(message) {
 }
 
 function renderChat(data) {
+    // Append new messages while preserving existing DOM when possible.
     const payload = JSON.stringify(data);
     if (payload === lastRenderedPayload) {
         return;
@@ -687,6 +705,7 @@ function renderChat(data) {
 }
 
 function fetchChat() {
+    // Poll the REST endpoint and stream updates into the render loop.
     fetch(chatEndpoint, {
         headers: {
             Accept: 'application/json',

@@ -10,7 +10,7 @@
 - Smooth scrolling and message entrance animations keep the feed readable.
 
 ## Requirements
-- Windows PC (tested) with [Python 3.10+](https://www.python.org/downloads/). During install, **check “Add Python to PATH.”**
+- Windows PC (tested) with [Python 3.10+](https://www.python.org/downloads/). During install, **check "Add Python to PATH."**
 - A Discord bot with **MESSAGE CONTENT INTENT** enabled and permission to read the target channel(s).
 
 ## Quick Start
@@ -21,12 +21,12 @@
    pip install -r requirements.txt
    ```
 3. **Configure `settings.ini`.** Copy `settings.ini.example` to `settings.ini`, open it in a text editor, and fill in:
-   - `DISCORD_BOT_TOKEN` – your bot token.
-   - `DISCORD_CHANNEL_ID_OBS` – the channel you want to show inside OBS.
-   - `DISCORD_CHANNEL_ID_EMBED` – the channel to expose via the embeddable widget. Use the OBS channel ID again if you only need one feed.
+   - `DISCORD_BOT_TOKEN` - your bot token.
+   - `DISCORD_CHANNEL_ID_OBS` - the channel you want to show inside OBS.
+   - `DISCORD_CHANNEL_ID_EMBED` - the channel to expose via the embeddable widget. Use the OBS channel ID again if you only need one feed.
    Optional keys:
-   - `CHAT_API_HOST` / `CHAT_API_PORT` – override the HTTP server bind address (default `127.0.0.1:8080`).
-   - `CHAT_HISTORY_SIZE` – how many recent messages to retain (default `200`).
+   - `CHAT_API_HOST` / `CHAT_API_PORT` - override the HTTP server bind address (default `127.0.0.1:8080`).
+   - `CHAT_HISTORY_SIZE` - how many recent messages to retain (default `200`).
    Legacy `DISCORD_CHANNEL_ID` is still read as a fallback, but the two explicit keys above are preferred.
 4. **Run the bot and web server.** Either double-click `start_everything.bat` or run `python bot.py`. The log will confirm the OBS + embed channel IDs and the REST endpoints.
 5. **Add to OBS.** Create a Browser Source in OBS pointing at `http://127.0.0.1:8080/` and set the width/height you prefer. The page auto-scrolls and animates new messages.
@@ -90,8 +90,10 @@ Query parameters mirror the helper options (`bg`, `message_bg`, `text_color`, `u
 ## Demo Page
 A ready-made playground lives in `demo-embed/index.html`. Start the bot (`python bot.py`), then open that file in your browser to try theme switches, username toggles, and alternate origins.
 
+![Embed Demo](embed%20demo.png)
+
 ## Troubleshooting
-- **“DISCORD_BOT_TOKEN is required.”** Double-check `settings.ini` and ensure the file is in the project root.
+- **"DISCORD_BOT_TOKEN is required."** Double-check `settings.ini` and ensure the file is in the project root.
 - **Bot fails to log in.** Regenerate the token in the Developer Portal and update `settings.ini`.
 - **Feed is empty.** Confirm the bot has access to the channel(s) and the IDs in `settings.ini` are correct.
 - **Pip errors.** Make sure Python is installed, added to PATH, and retry the `pip install` commands.

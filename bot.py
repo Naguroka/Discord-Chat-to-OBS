@@ -22,6 +22,7 @@ CUSTOM_EMOJI_PATTERN = re.compile(r"<a?:([a-zA-Z0-9_]+)(?::(\d+))?>")
 
 
 def configure_logging() -> None:
+    """Initialize root logging so stdout matches the configured level."""
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO"),
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -29,6 +30,7 @@ def configure_logging() -> None:
 
 
 def load_settings_file(path: Path) -> Dict[str, str]:
+    """Read key=value pairs from a .ini style file into a dict."""
     if not path.exists():
         raise RuntimeError(
             "settings.ini is missing. Copy settings.ini.example, fill it in, and rerun the bot."
@@ -45,6 +47,7 @@ def load_settings_file(path: Path) -> Dict[str, str]:
 
 
 def get_setting(store: Mapping[str, str], key: str, *, default: str | None = None) -> str | None:
+    """Fetch a configuration value, falling back to environment variables."""
     value = store.get(key)
     if value:
         return value
@@ -55,6 +58,7 @@ def get_setting(store: Mapping[str, str], key: str, *, default: str | None = Non
 
 
 def require_setting(store: Mapping[str, str], key: str) -> str:
+    """Return a mandatory config value or raise a friendly error."""
     value = get_setting(store, key)
     if not value:
         raise RuntimeError(
@@ -64,6 +68,7 @@ def require_setting(store: Mapping[str, str], key: str) -> str:
 
 
 def parse_int(value: str, key: str, *, minimum: int | None = None) -> int:
+    """Convert config strings to ints and enforce optional minimums."""
     try:
         parsed = int(value)
     except ValueError as err:
@@ -75,6 +80,7 @@ def parse_int(value: str, key: str, *, minimum: int | None = None) -> int:
 
 
 def build_content_segments(text: str) -> list[dict[str, str | bool]]:
+    """Split raw Discord text into text and custom emoji segments."""
     if not text:
         return []
 
@@ -113,6 +119,7 @@ class Settings:
 
 
 def sticker_cdn_candidates(sticker: Any | None) -> list[dict[str, Any]]:
+    """Return probable CDN URLs and metadata for a Discord sticker."""
     candidates: list[dict[str, Any]] = []
     if sticker is None:
         return candidates
@@ -158,6 +165,7 @@ def sticker_cdn_candidates(sticker: Any | None) -> list[dict[str, Any]]:
                 for template in image_templates:
                     fallback_urls.append(template.format(id=sticker_id, ext=ext))
         fallback_urls = list(dict.fromkeys(fallback_urls))
+        # Prefer the animated JSON, but keep static fallbacks for browsers that cannot load it.
 
         lottie_urls: list[str] = []
         url_attr = getattr(sticker, 'url', None)
@@ -218,6 +226,7 @@ def sticker_cdn_candidates(sticker: Any | None) -> list[dict[str, Any]]:
 
 
 def load_settings() -> Settings:
+    """Assemble runtime settings from disk and environment."""
     store = load_settings_file(SETTINGS_PATH)
 
     token = require_setting(store, "DISCORD_BOT_TOKEN")
@@ -254,6 +263,7 @@ def load_settings() -> Settings:
 
 
 def build_intents() -> discord.Intents:
+    """Enable the minimal gateway intents we rely on."""
     intents = discord.Intents.default()
     intents.messages = True
     intents.message_content = True
@@ -264,6 +274,7 @@ MessagePayload = Dict[str, object]
 
 
 class ChatRelayClient(discord.Client):
+    """Discord client that mirrors messages into per-feed histories."""
     def __init__(
         self,
         *,
@@ -287,10 +298,10 @@ class ChatRelayClient(discord.Client):
 
         channel_key = self._channel_mapping.get(message.channel.id)
         if channel_key is None:
-            return
+            return  # Not a channel we care about.
         history = self._histories.get(channel_key)
         if history is None:
-            return
+            return  # Safety guard for missing history queues.
 
         raw_content = message.content or ""
         clean_content = message.clean_content or raw_content
@@ -317,6 +328,7 @@ class ChatRelayClient(discord.Client):
             source_url: str | None = None,
             extra: Mapping[str, Any] | None = None,
         ) -> bool:
+            """Insert a media entry once, tagging extras for the frontend."""
             if not url:
                 return False
             normalized = normalize(url)
@@ -460,6 +472,7 @@ def cors_headers() -> Dict[str, str]:
 
 
 def build_web_app(histories: Mapping[str, Deque[MessagePayload]]) -> web.Application:
+    """Expose REST endpoints for both OBS and embed consumers."""
     history_obs = histories.get('obs')
     if history_obs is None:
         try:
@@ -481,6 +494,7 @@ def build_web_app(histories: Mapping[str, Deque[MessagePayload]]) -> web.Applica
         return web.json_response(list(selected_history), headers=cors_headers())
 
     async def handle_embed_chat(request: web.Request) -> web.Response:
+        """Dedicated endpoint for backwards-compatible embed polling."""
         return web.json_response(list(history_embed), headers=cors_headers())
 
     async def handle_options(request: web.Request) -> web.Response:
@@ -520,6 +534,7 @@ def build_web_app(histories: Mapping[str, Deque[MessagePayload]]) -> web.Applica
 
 
 async def run_web_app(app: web.Application, *, host: str, port: int, shutdown_event: asyncio.Event) -> None:
+    """Spin up the aiohttp server until the Discord client signals shutdown."""
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, host, port)
@@ -534,6 +549,7 @@ async def run_web_app(app: web.Application, *, host: str, port: int, shutdown_ev
 
 
 async def main() -> None:
+    """Bootstrap configuration, Discord client, and web server."""
     configure_logging()
 
     try:
@@ -549,6 +565,7 @@ async def main() -> None:
         history_embed = history_obs
     else:
         history_embed = deque(maxlen=settings.history_size)
+    # Keep separate history buffers so OBS and embeds can diverge cleanly.
 
     histories: Dict[str, Deque[MessagePayload]] = {
         'obs': history_obs,
@@ -558,6 +575,7 @@ async def main() -> None:
     channel_mapping: Dict[int, str] = {settings.obs_channel_id: 'obs'}
     if settings.embed_channel_id != settings.obs_channel_id:
         channel_mapping[settings.embed_channel_id] = 'embed'
+    # The mapping lets the Discord client decide which history deque to fan out into.
 
     client = ChatRelayClient(
         channel_mapping=channel_mapping,

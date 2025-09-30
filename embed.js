@@ -1,5 +1,7 @@
+// Lightweight helper for mounting the Discord chat embed.
 (function () {
-    const DEFAULTS = {
+    // Sensible defaults that keep the iframe manageable out of the box.
+const DEFAULTS = {
         width: '100%',
         height: '480px',
         minHeight: 0,
@@ -12,7 +14,8 @@
     };
     const iframeRegistry = new Map();
     let messageListenerRegistered = false;
-    function parseBoolean(value, fallback) {
+    // Parse truthy/falsey string values used in data attributes.
+function parseBoolean(value, fallback) {
         if (value == null) {
             return fallback;
         }
@@ -28,14 +31,16 @@
         }
         return fallback;
     }
-    function parseNumber(value) {
+    // Normalize numeric strings into finite numbers or null.
+function parseNumber(value) {
         if (value == null || value === '') {
             return null;
         }
         const number = Number(value);
         return Number.isFinite(number) ? number : null;
     }
-    function normalizeBase(origin) {
+    // Clean up the base origin so routes resolve predictably.
+function normalizeBase(origin) {
         if (!origin) {
             throw new Error('DiscordChatEmbed: "origin" option is required.');
         }
@@ -65,7 +70,8 @@
         url.hash = '';
         return url;
     }
-    function setOptionalParam(url, key, value) {
+    // Helper to skip empty params while building the URL.
+function setOptionalParam(url, key, value) {
         if (value == null || value === '') {
             return;
         }
@@ -84,6 +90,7 @@
         if (requestedTarget) {
             embedUrl.searchParams.set('chat_target', requestedTarget);
         }
+        // Decide which channel history the iframe should consume.
 
         if (parseBoolean(options.transparent, DEFAULTS.transparent)) {
             embedUrl.searchParams.set('transparent', '1');
@@ -193,6 +200,7 @@
             onResize: typeof options.onResize === 'function' ? options.onResize : null,
         };
         if (registryEntry.autoResize || registryEntry.onResize) {
+        // Cache iframe references so we can answer postMessage pings.
             if (registryEntry.minHeight == null) {
                 registryEntry.minHeight = DEFAULTS.minHeight;
             }
@@ -204,7 +212,8 @@
         }
         return iframe;
     }
-    function resolveTarget(target) {
+    // Resolve string selectors or DOM elements into mount targets.
+function resolveTarget(target) {
         if (target instanceof Element) {
             return target;
         }
@@ -281,4 +290,5 @@
         configurable: false,
     });
     autoMountFromScript(getCurrentScript());
+    // Auto-mount when embed.js is loaded with data-* attributes.
 })();
