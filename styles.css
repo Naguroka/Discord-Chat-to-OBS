@@ -1,12 +1,24 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
+:root {
+    --chat-font-family: 'Roboto', sans-serif;
+    --chat-background: #36393f;
+    --message-background: #40444b;
+    --message-color: #dcddde;
+    --username-color-default: #99aab5;
+    --chat-frame-height: auto;
+    --chat-frame-max-height: none;
+}
+
+
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     overflow: hidden; /* Hide scrollbars on the whole page */
-    font-family: 'Roboto', sans-serif; /* Similar to Discord's font */
-    background-color: #36393f; /* Discord's dark theme background color */
+    font-family: var(--chat-font-family); /* Similar to Discord's font */
+    background-color: var(--chat-background); /* Discord's dark theme background color */
+    color: var(--message-color);
 }
 
 #chat {
@@ -17,6 +29,7 @@ body, html {
     bottom: 0;
     overflow-y: scroll; /* Enable vertical scrolling */
     padding: 20px;
+    scroll-behavior: smooth;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -24,11 +37,15 @@ body, html {
 }
 
 #chat::-webkit-scrollbar {
-    display: none; /* Hide scrollbars for Chrome, Safari, and Opera */
+    width: 0;
+    height: 0;
 }
 
 .chat-message {
     margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    animation: chat-message-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .message-content {
@@ -36,8 +53,8 @@ body, html {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
-    background-color: #40444b; /* Slightly lighter grey for the message bubble */
-    color: #dcddde; /* Text color similar to Discord's */
+    background-color: var(--message-background); /* Slightly lighter grey for the message bubble */
+    color: var(--message-color); /* Text color similar to Discord's */
     padding: 5px 10px;
     border-radius: 15px;
     word-wrap: break-word;
@@ -47,6 +64,7 @@ body, html {
 .username {
     font-weight: 500; /* Medium font weight for username */
     margin-right: 5px;
+    color: var(--username-color-default);
 }
 
 .message-text {
@@ -81,4 +99,82 @@ body, html {
     background-color: #000;
 }
 
+@keyframes chat-message-enter {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.95);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.01);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
 
+@media (prefers-reduced-motion: reduce) {
+    #chat {
+        scroll-behavior: auto;
+    }
+    .chat-message {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+.chat-lottie {
+    width: 200px;
+    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    overflow: hidden;
+}
+
+.chat-lottie svg,
+.chat-lottie canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+html.embed-mode,
+body.embed-mode {
+    height: auto;
+}
+
+body.embed-mode {
+    overflow: hidden;
+}
+
+.embed-mode #chat {
+    position: relative;
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: var(--chat-frame-height, auto);
+    max-height: var(--chat-frame-max-height, 480px);
+    padding: 16px;
+    margin: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.embed-mode #chat::-webkit-scrollbar {
+    display: block;
+    width: 8px;
+}
+
+.embed-mode #chat::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+}
+
+.embed-mode .message-content {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}

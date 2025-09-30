@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Chat Embed Demo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <h1>Discord Chat Embed Demo</h1>
+        <p>
+            This page mounts the <code>DiscordChatEmbed</code> helper against a running bot. Update the base URL
+            below if you are proxying the chat API through another host or port.
+        </p>
+        <section class="controls">
+            <label>
+                API Origin
+                <input id="apiOrigin" type="text" value="http://127.0.0.1:8080">
+            </label>
+            <div class="button-row">
+                <button data-theme="default" class="active">Default</button>
+                <button data-theme="neon">Neon</button>
+                <button data-theme="mono">Monochrome</button>
+                <button id="toggleUsers">Hide usernames</button>
+            </div>
+        </section>
+        <section class="iframe-wrapper">
+            <div id="chat-target"></div>
+        </section>
+    </main>
+    <script src="../embed.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>

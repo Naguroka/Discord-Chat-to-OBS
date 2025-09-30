@@ -1,6 +1,8 @@
-# Copy this file to settings.ini and replace the placeholders before running the bot.
-DISCORD_BOT_TOKEN=your-bot-token
-DISCORD_CHANNEL_ID=123456789012345678
-# CHAT_API_HOST=127.0.0.1
-# CHAT_API_PORT=8080
-# CHAT_HISTORY_SIZE=200
+# Copy this file to settings.ini and replace the placeholders before running the bot.
+DISCORD_BOT_TOKEN=your-bot-token
+DISCORD_CHANNEL_ID_OBS=123456789012345678
+DISCORD_CHANNEL_ID_EMBED=123456789012345678
+# CHAT_API_HOST=127.0.0.1
+# CHAT_API_PORT=8080
+# CHAT_HISTORY_SIZE=200
+# DISCORD_CHANNEL_ID=123456789012345678  # Legacy fallback
