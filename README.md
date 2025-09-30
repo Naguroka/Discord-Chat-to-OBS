@@ -44,7 +44,8 @@ This project mirrors one Discord channel to a browser page so stream viewers or 
    - `DISCORD_BOT_TOKEN` – paste the token you copied from the Developer Portal.
    - `DISCORD_CHANNEL_ID_OBS` – the channel you want to show inside OBS. In Discord, right‑click the channel name (Developer Mode enabled) → **Copy ID**.
    - `DISCORD_CHANNEL_ID_EMBED` – the channel you want to expose on websites. Use the OBS ID again if you only need one feed.
-   Optional ideas:
+     
+   Optional:
    - `CHAT_API_HOST` / `CHAT_API_PORT` to bind the web server somewhere other than `127.0.0.1:8080`.
    - `CHAT_HISTORY_SIZE` to keep more or fewer messages (default 200).
    - Legacy `DISCORD_CHANNEL_ID` is still accepted, but the two explicit keys above are preferred.
