@@ -1,4 +1,4 @@
-# Discord Chat Display — Super Simple Guide
+# Discord to OBS Installation and Usage
 
 <p align="center">
   <img src="assets/dobslogo.ico" alt="Discord to OBS logo" width="128" />
