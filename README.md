@@ -172,7 +172,7 @@ In the app:
 
 ---
 
-## Pro tips (no coding needed)
+## Pro tips 
 
 - **Favorites:** Click ☆ next to any setting to pin it under **Favorites**.  
 - **Stop/Start Services:** After changing settings, click **Stop Services** → **Start Services**, then reload your OBS/browser view.  
