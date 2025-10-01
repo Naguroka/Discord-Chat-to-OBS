@@ -127,7 +127,7 @@ In the app:
 
 ---
 
-## Premade demo to see how th embed works!
+## Premade demo to see how the embed works!
 
 <p align="center">
   <img src="assets/embed%20demo.png" alt="Embed demo preview" width="800" />
