@@ -125,11 +125,17 @@ In the app:
 2. Set the URL to **`http://127.0.0.1:8080/`**.  
 3. Choose a width/height (e.g. 700 × 900). The chat scrolls itself; no plugins needed.
 
+---
+
+## Premade demo to see how th embed works!
+
 <p align="center">
   <img src="assets/embed%20demo.png" alt="Embed demo preview" width="800" />
 </p>
 
----
+- Go to the demo-embed folder
+- Open index.html
+- Be sure you have the tool/services running, then refresh
 
 ## Add the chat to your website
 
