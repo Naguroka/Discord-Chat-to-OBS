@@ -1,8 +1,22 @@
-# Copy this file to settings.ini and replace the placeholders before running the bot.
-DISCORD_BOT_TOKEN=your-bot-token
-DISCORD_CHANNEL_ID_OBS=123456789012345678
-DISCORD_CHANNEL_ID_EMBED=123456789012345678
-# CHAT_API_HOST=127.0.0.1
-# CHAT_API_PORT=8080
-# CHAT_HISTORY_SIZE=200
-# DISCORD_CHANNEL_ID=123456789012345678  # Legacy fallback
+﻿# Copy this file to settings.ini and replace the placeholders before running the bot.
+
+# DISCORD_BOT_TOKEN authenticates the bot with Discord's gateway.
+DISCORD_BOT_TOKEN=your-bot-token
+
+# DISCORD_CHANNEL_ID_OBS is the channel ID mirrored into the OBS overlay feed.
+DISCORD_CHANNEL_ID_OBS=123456789012345678
+
+# DISCORD_CHANNEL_ID_EMBED is the channel ID mirrored into the embeddable widget feed.
+DISCORD_CHANNEL_ID_EMBED=123456789012345678
+
+# CHAT_API_HOST overrides the local web server host (leave commented to use 127.0.0.1).
+# CHAT_API_HOST=127.0.0.1
+
+# CHAT_API_PORT overrides the local web server port (leave commented to use 8080).
+# CHAT_API_PORT=8080
+
+# CHAT_HISTORY_SIZE limits how many recent messages remain in memory per feed.
+# CHAT_HISTORY_SIZE=200
+
+# DISCORD_CHANNEL_ID acts as a legacy fallback when both feeds should mirror the same channel.
+# DISCORD_CHANNEL_ID=123456789012345678

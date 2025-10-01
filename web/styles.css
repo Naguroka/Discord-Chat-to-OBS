@@ -1,0 +1,468 @@
+﻿/* Core styling for OBS view and embeddable widget. */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+/* Base palette exposed as CSS variables. */
+:root {
+    --chat-font-family: 'Sans Serif Collection'; /* Primary font family for chat text. */
+    --chat-background: #36393f; /* Page background color for the overlay. */
+    --message-background: #40444b; /* Bubble background color for each message. */
+    --message-color: #dcddde; /* Default message text color. */
+    --username-color-default: #99aab5; /* Fallback color when usernames lack a role color. */
+    --author-color: #ffffff; /* Color used by {{author}} when template uses var(). */
+    --timestamp-color: rgba(255, 255, 255, 0.7);
+    --message-white-space: normal; /* normal | nowrap | pre | pre-wrap */
+    --message-max-width: none;
+    --message-min-width: 0;
+    --message-line-gap: 6px; /* space between header and body lines inside the bubble */
+    --message-background-opacity: 1; /* 1 = opaque, 0 = fully transparent */
+    --background-media-opacity: 1; /* 1 = opaque, 0 = fully transparent */
+    --chat-frame-height: auto; /* Default iframe height when embedded. */
+    --chat-frame-max-height: none; /* Maximum iframe height cap for auto-resize mode. */
+    /* New: single knob to control padding on all sides of the message bubble */
+    --bubble-padding: 10px;
+    /* New: controls line spacing inside messages (affects <br> line breaks) */
+    --message-line-height: 15px;
+    /* Avatar sizing knobs */
+    --avatar-size: 40px;
+    --avatar-width: var(--avatar-size);
+    --avatar-height: var(--avatar-size);
+    --emoji-size: 64px;
+}
+
+/* Background media support draws either an image layer or video. */
+html::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    opacity: var(--background-media-opacity, 1);
+    pointer-events: none;
+    z-index: -3;
+    display: none;
+}
+
+html[data-background-media="image"]::before {
+    display: block;
+    background-image: var(--chat-background-media);
+}
+
+html[data-background-media="video"]::before {
+    display: none;
+}
+
+html[data-background-media="image"] body,
+html[data-background-media="video"] body,
+body.chat-background-video-active {
+    background-color: transparent;
+}
+
+/* OBS layout fills the browser source. */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Hide scrollbars on the whole page */
+    font-family: var(--chat-font-family); /* Similar to Discord's font */
+    background-color: var(--chat-background); /* Discord's dark theme background color */
+    color: var(--message-color);
+}
+
+/* Chat viewport scrolls like Discord. */
+#chat {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: scroll; /* Enable vertical scrolling */
+    padding: 20px;
+    scroll-behavior: smooth;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: none; /* For Firefox */
+}
+
+#chat::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+    animation: chat-message-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.message-avatar {
+    flex: 0 0 auto;
+    width: var(--avatar-width, var(--avatar-size, 40px));
+    height: var(--avatar-height, var(--avatar-size, 40px));
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+
+/* Message bubble styling keeps things readable. */
+.message-content {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--message-line-gap, 2px);
+    color: var(--message-color);
+    /* One source of truth for inner spacing */
+    padding: var(--bubble-padding, 10px);
+    line-height: var(--message-line-height, 1.25);
+    border-radius: 15px;
+    white-space: var(--message-white-space, normal);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: var(--message-max-width, none);
+    min-width: var(--message-min-width, 0);
+}
+
+/* Keep bubble padding visually intact even if inner elements have margins */
+.message-content > :first-child { margin-top: 0; }
+.message-content > :last-child  { margin-bottom: 0; }
+
+.message-content::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: var(--message-background);
+    opacity: var(--message-background-opacity, 1);
+    z-index: -1;
+}
+
+
+.username {
+    font-weight: 500; /* Medium font weight for username */
+    margin-right: 5px;
+    color: var(--username-color-default);
+}
+
+/* Timestamp styling keeps times readable but secondary. */
+.message-timestamp {
+    margin-left: 4px;
+    font-weight: 400;
+    color: var(--timestamp-color, rgba(255, 255, 255, 0.7));
+}
+
+.message-text {
+    display: inline; /* Keep username and message on the same line */
+}
+.custom-emoji {
+    display: inline-block;
+    width: var(--emoji-size, 1.4em);
+    height: var(--emoji-size, 1.4em);
+    margin: 0 0.1em;
+    vertical-align: text-bottom;
+    object-fit: contain;
+}
+
+
+.media-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.chat-image,
+.chat-video {
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.chat-video {
+    background-color: #000;
+}
+
+/* Animation keyframes for new message entrance. */
+@keyframes chat-message-enter {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) scale(0.95);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.01);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #chat {
+        scroll-behavior: auto;
+    }
+    .chat-message {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+}
+
+
+.chat-lottie {
+    width: 200px;
+    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    overflow: hidden;
+}
+
+.chat-lottie svg,
+.chat-lottie canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+
+.message-embeds {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.message-embed {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.embed-accent {
+    width: 4px;
+    flex: 0 0 auto;
+    background-color: rgba(88, 101, 242, 0.85);
+}
+
+.embed-main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+.embed-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.embed-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 2 1 200px;
+    min-width: 0;
+}
+
+.embed-author {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.embed-author img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.embed-author-name {
+    color: inherit;
+    text-decoration: none;
+}
+
+.embed-author-name:hover,
+.embed-author-name:focus {
+    text-decoration: underline;
+}
+
+.embed-title {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.embed-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.embed-title a:hover,
+.embed-title a:focus {
+    text-decoration: underline;
+}
+
+.embed-description {
+    color: #dfe3ea;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.embed-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.embed-field {
+    background-color: rgba(0, 0, 0, 0.25);
+    border-radius: 6px;
+    padding: 6px 8px;
+    flex: 1 1 100%;
+    min-width: 120px;
+}
+
+.embed-field.inline {
+    flex: 1 1 calc(50% - 4px);
+}
+
+.embed-field-name {
+    font-weight: 600;
+    color: #f3f4f6;
+    margin-bottom: 4px;
+}
+
+.embed-field-value {
+    color: #d1d5db;
+    font-size: 0.9rem;
+    line-height: 1.35;
+}
+
+.embed-thumbnail {
+    flex: 0 0 auto;
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.embed-image {
+    width: 100%;
+    max-width: 420px;
+    max-height: 320px;
+    border-radius: 10px;
+    object-fit: cover;
+    align-self: flex-start;
+    margin-top: 6px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.embed-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #b8bec8;
+    font-size: 0.85rem;
+}
+
+.embed-footer-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.embed-footer-text {
+    line-height: 1.3;
+}
+
+/* Embed-specific layout tweaks live behind the .embed-mode flag. */
+html.embed-mode,
+body.embed-mode {
+    height: auto;
+}
+
+body.embed-mode {
+    overflow: hidden;
+}
+
+.embed-mode #chat {
+    position: relative;
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: var(--chat-frame-height, auto);
+    max-height: var(--chat-frame-max-height, 480px);
+    padding: 16px;
+    margin: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.embed-mode #chat::-webkit-scrollbar {
+    display: block;
+    width: 8px;
+}
+
+.embed-mode #chat::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+}
+
+html.embed-mode[data-embed-scrollbar="hidden"] #chat {
+    scrollbar-width: none;
+}
+
+html.embed-mode[data-embed-scrollbar="hidden"] #chat::-webkit-scrollbar {
+    display: none;
+}
+
+.embed-mode .message-content {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--message-line-gap, 2px);
+    color: var(--message-color);
+    /* One source of truth for inner spacing */
+    padding: var(--bubble-padding, 10px);
+    line-height: var(--message-line-height, 1.25);
+    border-radius: 15px;
+    white-space: var(--message-white-space, normal);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: var(--message-max-width, none);
+    min-width: var(--message-min-width, 0);
+}
+
+
+
